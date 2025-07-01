@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from "./redux/hook";
 function App() {
   const dispatch = useAppDispatch()
   const { count } = useAppSelector((state: RootState) => state.counter)
-
+ 
   console.log(count);
   const handleIncrement = () => {
     dispatch(increment(5))
