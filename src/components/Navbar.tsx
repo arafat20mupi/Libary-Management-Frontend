@@ -5,7 +5,7 @@ export function Navbar() {
   const location = useLocation()
 
   const navItems = [
-    { href: "/books", label: "All Books", icon: BookOpen },
+    { href: "/all-books", label: "All Books", icon: BookOpen },
     { href: "/create-book", label: "Add Book", icon: Plus },
     { href: "/borrow-summary", label: "Borrow Summary", icon: FileText },
   ]
@@ -16,7 +16,7 @@ export function Navbar() {
     <nav className="bg-white shadow-sm border-b">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/books" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2">
             <BookOpen className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-bold text-gray-900">LibraryMS</span>
           </Link>
