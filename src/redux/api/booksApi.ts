@@ -23,7 +23,7 @@ export const booksApi = createApi({
         // Get single book by ID
         getBookById: builder.query<Book, string>({
             query: (bookId) => `/books/${bookId}`,
-            providesTags: (result, error, id) => [{ type: "Book", id }],
+            providesTags: (_result, _error, id) => [{ type: "Book", id }],
         }),
 
         // Create a new book
@@ -43,7 +43,7 @@ export const booksApi = createApi({
                 method: "PUT",
                 body: data,
             }),
-            invalidatesTags: (result, error, { bookId }) => [{ type: "Book", id: bookId }],
+            invalidatesTags: (_result, _error, { bookId }) => [{ type: "Book", id: bookId }],
         }),
 
         // Delete book
