@@ -1,10 +1,10 @@
 import type React from "react"
-import { Edit, Trash2, User, Tag, Hash, Copy } from 'lucide-react'
+import { Edit, Trash2, User, Tag, Hash, Copy, Book } from 'lucide-react'
 import type { BookCardProps } from "../../interface/interface"
 
 
 
-const BookCard: React.FC<BookCardProps> = ({ book, onEdit, onDelete }) => {
+const BookCard: React.FC<BookCardProps> = ({ book, onEdit, onDelete  , onBorrow }) => {
   return (
     <div className="w-full max-w-md mx-auto bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-100 overflow-hidden">
       {/* Header */}
@@ -59,12 +59,21 @@ const BookCard: React.FC<BookCardProps> = ({ book, onEdit, onDelete }) => {
           Edit
         </button>
         <button
-          onClick={() => onDelete?.(book.isbn)}
+          onClick={() => onDelete?.(book._id)}
           className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-red-600 border border-red-600 rounded-lg hover:bg-red-700 hover:border-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200"
         >
           <Trash2 className="w-4 h-4" />
           Delete
         </button>
+
+        <button
+          onClick={() => onBorrow?.(book._id, book.copies)}
+          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-green-600 border border-green-600 rounded-lg hover:bg-green-700 hover:border-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200"
+        >
+          <Book className="w-4 h-4" />
+          Borrow
+        </button>
+
       </div>
     </div>
   )
