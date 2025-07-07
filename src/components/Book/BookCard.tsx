@@ -1,79 +1,120 @@
-import type React from "react"
-import { Edit, Trash2, User, Tag, Hash, Copy, Book } from 'lucide-react'
-import type { BookCardProps } from "../../interface/interface"
+import { Link } from "react-router-dom"
+import { BookOpen, Edit, Trash2, Eye, Calendar, User } from "lucide-react"
+import type { Book } from "../../interface/interface"
 
+interface BookCardProps {
+  book: Book
+  onEdit?: () => void
+  onDelete?: () => void
+  onBorrow?: () => void
+  onViewDetails?: () => void
+}
 
+const BookCard = ({ book, onEdit, onDelete, onBorrow }: BookCardProps) => {
+  const getGenreColor = (genre: string) => {
+    const colors = {
+      FICTION: "bg-blue-100 text-blue-800",
+      SCIENCE: "bg-green-100 text-green-800",
+      HISTORY: "bg-purple-100 text-purple-800",
+      FANTASY: "bg-pink-100 text-pink-800",
+      OTHER: "bg-gray-100 text-gray-800",
+    }
+    return colors[genre as keyof typeof colors] || colors.OTHER
+  }
 
-const BookCard: React.FC<BookCardProps> = ({ book, onEdit, onDelete  , onBorrow }) => {
   return (
-    <div className="w-full max-w-md mx-auto bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-100 overflow-hidden">
-      {/* Header */}
-      <div className="p-6 pb-4">
-        <div className="flex items-start justify-between gap-3">
-          <h2 className="text-xl font-bold text-gray-900 leading-tight flex-1">{book.title}</h2>
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium shrink-0 ${book.available
-            ? 'bg-green-100 text-green-800'
-            : 'bg-red-100 text-red-800'
-            }`}>
-            {book.available ? "Available" : "Unavailable"}
-          </span>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group">
+      {/* Book Cover */}
+      <div className="aspect-[4/3] bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center relative overflow-hidden">
+        <BookOpen className="h-16 w-16 text-gray-400 group-hover:scale-110 transition-transform duration-300" />
+
+        {/* Availability Badge */}
+        <div className="absolute top-3 right-3">
+          <div
+            className={`px-2 py-1 rounded-full text-xs font-medium ${
+              book.available ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+            }`}
+          >
+            {book.available ? "Available" : "Not Available"}
+          </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="px-6 pb-6 space-y-4">
-        <div className="flex items-center gap-3 text-sm text-gray-600">
-          <User className="w-4 h-4 text-gray-400 shrink-0" />
-          <span className="font-medium text-gray-700">Author:</span>
-          <span className="text-gray-900">{book.author}</span>
+      {/* Book Content */}
+      <div className="p-6">
+        {/* Header */}
+        <div className="mb-4">
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="text-lg font-bold text-gray-900 line-clamp-2 flex-1 mr-2">{book.title}</h3>
+            {book.genre && (
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getGenreColor(book.genre)}`}>
+                {book.genre}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center text-gray-600 mb-2">
+            <User className="h-4 w-4 mr-1" />
+            <span className="text-sm">{book.author}</span>
+          </div>
+
+          {book.isbn && (
+            <div className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded">ISBN: {book.isbn}</div>
+          )}
         </div>
 
-        <div className="flex items-center gap-3 text-sm text-gray-600">
-          <Tag className="w-4 h-4 text-gray-400 shrink-0" />
-          <span className="font-medium text-gray-700">Genre:</span>
-          <span className="text-gray-900">{book.genre}</span>
+        {/* Description */}
+        {book.description && <p className="text-gray-600 text-sm mb-4 line-clamp-3">{book.description}</p>}
+
+        {/* Stats */}
+        <div className="flex items-center justify-between mb-6 text-sm text-gray-500">
+          <div className="flex items-center">
+            <Calendar className="h-4 w-4 mr-1" />
+            <span>{book.copies || 0} copies</span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3 text-sm text-gray-600">
-          <Hash className="w-4 h-4 text-gray-400 shrink-0" />
-          <span className="font-medium text-gray-700">ISBN:</span>
-          <span className="font-mono text-xs text-gray-900 bg-gray-50 px-2 py-1 rounded">{book.isbn}</span>
+        {/* Action Buttons */}
+        <div className="space-y-3">
+          {/* View Details Button */}
+          <Link
+            to={`/book/${book._id}`}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-2.5 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center group"
+          >
+            <Eye className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+            View Details
+          </Link>
+
+          {/* Secondary Actions */}
+          <div className="grid grid-cols-3 gap-2">
+            {book.available && onBorrow && (
+              <button
+                onClick={onBorrow}
+                className="flex items-center justify-center px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium"
+              >
+                <BookOpen className="h-4 w-4" />
+              </button>
+            )}
+
+            {onEdit && (
+              <button
+                onClick={onEdit}
+                className="flex items-center justify-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+              >
+                <Edit className="h-4 w-4" />
+              </button>
+            )}
+
+            {onDelete && (
+              <button
+                onClick={onDelete}
+                className="flex items-center justify-center px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
-
-        <div className="flex items-center gap-3 text-sm text-gray-600">
-          <Copy className="w-4 h-4 text-gray-400 shrink-0" />
-          <span className="font-medium text-gray-700">Copies:</span>
-          <span className="font-bold  bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs min-w-[24px] text-center">
-            {book.copies}
-          </span>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="px-6 pb-6 flex gap-3">
-        <button
-          onClick={() => onEdit?.(book)}
-          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
-        >
-          <Edit className="w-4 h-4" />
-          Edit
-        </button>
-        <button
-          onClick={() => onDelete?.(book._id)}
-          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-red-600 border border-red-600 rounded-lg hover:bg-red-700 hover:border-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200"
-        >
-          <Trash2 className="w-4 h-4" />
-          Delete
-        </button>
-
-        <button
-          onClick={() => onBorrow?.(book._id, book.copies)}
-          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-green-600 border border-green-600 rounded-lg hover:bg-green-700 hover:border-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200"
-        >
-          <Book className="w-4 h-4" />
-          Borrow
-        </button>
-
       </div>
     </div>
   )
