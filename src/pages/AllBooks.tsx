@@ -5,13 +5,19 @@ import { useState } from "react"
 import toast from "react-hot-toast"
 import BookCard from "../components/Book/BookCard"
 import type { Book } from "../interface/interface"
-import { useGetAllBooksQuery, useDeleteBookMutation, useUpdateBookMutation } from "../redux/api/booksApi"
+import {
+  useGetAllBooksQuery,
+  useDeleteBookMutation,
+  useUpdateBookMutation,
+  useBorrowBookMutation, // Add this back
+} from "../redux/api/booksApi"
 
 const AllBooks = () => {
   const { data: booksResponse, isLoading, isError, refetch } = useGetAllBooksQuery({})
   const books = booksResponse?.data ?? []
   const [deleteBook, { isLoading: isDeleting }] = useDeleteBookMutation()
   const [updateBook, { isLoading: isUpdating }] = useUpdateBookMutation()
+  const [borrowBook, { isLoading: isBorrowing }] = useBorrowBookMutation()
 
   // State for edit modal and current book to edit
   const [editingBook, setEditingBook] = useState<Book | null>(null)
@@ -35,6 +41,10 @@ const AllBooks = () => {
     available: false,
   })
 
+  // Add borrowing state
+  const [borrowingBook, setBorrowingBook] = useState<Book | null>(null)
+  const [borrowData, setBorrowData] = useState({ quantity: 1, dueDate: "" })
+
   // Open edit modal with selected book's data
   const openEditModal = (book: Book) => {
     setEditingBook(book)
@@ -52,6 +62,34 @@ const AllBooks = () => {
   // Close modal
   const closeEditModal = () => {
     setEditingBook(null)
+  }
+
+  const openBorrowModal = (book: Book) => {
+    setBorrowingBook(book)
+    setBorrowData({ quantity: 1, dueDate: "" })
+  }
+
+  const closeBorrowModal = () => setBorrowingBook(null)
+
+  const handleBorrowChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setBorrowData((prev) => ({
+      ...prev,
+      [name]: name === "quantity" ? Number.parseInt(value) || 1 : value,
+    }))
+  }
+
+  const handleBorrowSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!borrowingBook) return
+    try {
+      await borrowBook({ book: borrowingBook._id, ...borrowData }).unwrap()
+      toast.success("Book borrowed successfully!")
+      closeBorrowModal()
+      refetch()
+    } catch {
+      toast.error("Failed to borrow book.")
+    }
   }
 
   // Handle input change
@@ -103,7 +141,7 @@ const AllBooks = () => {
           </p>
         </div>
 
-        {(isLoading || isDeleting || isUpdating) && (
+        {(isLoading || isDeleting || isUpdating || isBorrowing) && (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             <p className="ml-4 text-gray-600">Loading...</p>
@@ -127,6 +165,7 @@ const AllBooks = () => {
                   book={book}
                   onEdit={() => openEditModal(book)}
                   onDelete={() => handleDelete(book._id)}
+                  onBorrow={() => openBorrowModal(book)} // Add this line
                   onViewDetails={() => {}} // This will be handled in BookCard component
                 />
               ))
@@ -324,6 +363,99 @@ const AllBooks = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+        {/* Borrow Modal */}
+        {borrowingBook && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={closeBorrowModal}
+          >
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+              <div className="px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-gray-900">Borrow Book</h2>
+                  <button onClick={closeBorrowModal} className="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <div className="mb-4">
+                  <h3 className="font-semibold text-gray-900">{borrowingBook.title}</h3>
+                  <p className="text-sm text-gray-600">by {borrowingBook.author}</p>
+                  <p className="text-sm text-gray-500 mt-1">Available copies: {borrowingBook.copies}</p>
+                </div>
+
+                <form onSubmit={handleBorrowSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Quantity *</label>
+                    <input
+                      name="quantity"
+                      type="number"
+                      min={1}
+                      max={borrowingBook.copies}
+                      value={borrowData.quantity}
+                      onChange={handleBorrowChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                      placeholder="Enter quantity"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Due Date *</label>
+                    <input
+                      name="dueDate"
+                      type="date"
+                      value={borrowData.dueDate}
+                      onChange={handleBorrowChange}
+                      min={new Date().toISOString().split("T")[0]}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                      required
+                    />
+                  </div>
+
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex">
+                      <svg className="w-5 h-5 text-green-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <p className="ml-3 text-sm text-green-700">
+                        Please return the book by the due date to avoid late fees.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-4 pt-4">
+                    <button
+                      type="button"
+                      onClick={closeBorrowModal}
+                      className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isBorrowing}
+                      className="px-6 py-3 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    >
+                      {isBorrowing && (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      )}
+                      {isBorrowing ? "Borrowing..." : "Confirm Borrow"}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         )}

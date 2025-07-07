@@ -78,7 +78,7 @@ const BookCard = ({ book, onEdit, onDelete, onBorrow }: BookCardProps) => {
         <div className="space-y-3">
           {/* View Details Button */}
           <Link
-            to={`/book/${book._id}`}
+            to={`/single-book/${book._id}`}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-2.5 px-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center group"
           >
             <Eye className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
