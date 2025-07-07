@@ -21,11 +21,9 @@ export const booksApi = createApi({
         }),
 
         // Get single book by ID
-        getBookById: builder.query<Book, string>({
-            query: (bookId) => `/books/${bookId}`,
-            providesTags: (_result, _error, id) => [{ type: "Book", id }],
+        getBookById: builder.query<{ data: Book }, string>({
+            query: (id) => `/books/${id}`,
         }),
-
         // Create a new book
         createBook: builder.mutation<Book, Partial<Book>>({
             query: (bookData) => ({
@@ -56,13 +54,12 @@ export const booksApi = createApi({
         }),
 
         // Borrow a book
-        borrowBook: builder.mutation<BorrowedBookItem, { book: string; quantity: number; dueDate: string }>({
+        borrowBook: builder.mutation({
             query: (borrowData) => ({
-                url: "/borrow",
-                method: "POST",
+                url: `/borrow`,
+                method: 'POST',
                 body: borrowData,
             }),
-            invalidatesTags: ["Book", "BorrowRecord"],
         }),
 
         // Get borrowed book summary
